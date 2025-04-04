@@ -119,9 +119,9 @@ def main():
     res, answer = [], []
     match args.mode:
         case "easy":
-            g_num = 150
+             g_num = 1
         case "medium":
-            g_num = 600
+            g_num = 2
         case "hard":
             g_num = 400
 
@@ -146,7 +146,9 @@ def main():
             sc = args.SC_num
         sc_list = []
         for k in range(sc):
+            print(f"Running OpenAI call #{k+1}...")
             answer_list = predict(Q_list, args)
+            print(f"Finished OpenAI call #{k+1}")
             sc_list.append(answer_list)
         for j in range(len(Q_list)):
             vote = 0
