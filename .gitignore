@@ -10,6 +10,7 @@ log/
 *.npy
 prompt.txt
 check_output.py
+localFile.txt
 
 .ipynb_checkpoints/
 
