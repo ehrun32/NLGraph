@@ -49,9 +49,3 @@ def call_gemini(model, prompt, temperature=0.7, max_tokens=400):
     # return response.text
     raise NotImplementedError("Gemini API wrapper not yet implemented.")
 
-
-def call_local_model(model_name, prompt):
-    """
-    Placeholder for local open-source models (like Zephyr, OpenChat).
-    """
-    raise NotImplementedError("Local HF model wrapper not yet implemented.")

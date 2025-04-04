@@ -13,7 +13,6 @@ from models.wrappers import (
     call_openai_chat,
     call_anthropic_claude,
     call_gemini,
-    call_local_model,
 )
 
 
@@ -83,8 +82,6 @@ def predict(Q_list, args):
             response = call_anthropic_claude(args.model, prompt, temperature, args.token)
         elif args.provider == "gemini":
             response = call_gemini(args.model, prompt, temperature, args.token)
-        elif args.provider == "huggingface":
-            response = call_local_model(args.model, prompt)
         else:
             raise ValueError(f"Unsupported provider: {args.provider}")
         answer_list.append(response)
