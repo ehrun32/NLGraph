@@ -15,7 +15,6 @@ from models.wrappers import (
     call_gemini,
 )
 
-
 # Argument Parsing
 parser = argparse.ArgumentParser(description="cycle")
 parser.add_argument('--model', type=str, default="gpt-3.5-turbo", help='Model name (e.g. gpt-4o, claude-3)')
@@ -26,6 +25,7 @@ parser.add_argument('--T', type=int, default=0, help='Temperature (default: 0)')
 parser.add_argument('--token', type=int, default=400, help='Max tokens (default: 400)')
 parser.add_argument('--SC', type=int, default=0, help='Use self-consistency (default: 0)')
 parser.add_argument('--SC_num', type=int, default=5, help='Number of samples for self-consistency')
+parser.add_argument('--dry_run', action='store_true', help='Print prompts without calling the API')
 args = parser.parse_args()
 
 assert args.prompt in [
@@ -75,6 +75,12 @@ def predict(Q_list, args):
     temperature = 0.7 if args.SC else 0
     answer_list = []
 
+    if args.dry_run:
+        print("\n========== DRY RUN: Prompt Only ==========\n")
+        for i, prompt in enumerate(Q_list):
+            print(f"\n--- Prompt #{i+1} ---\n{prompt}\n")
+        return ["(dry run - no API call)" for _ in Q_list]
+
     for prompt in Q_list:
         if args.provider == "openai":
             response = call_openai_chat(args.model, prompt, temperature, args.token)
@@ -105,7 +111,7 @@ def log(Q_list, res, answer, args):
         print(args, file=f)
 
 def main():
-    if 'OPENAI_API_KEY' not in os.environ:
+    if not args.dry_run and 'OPENAI_API_KEY' not in os.environ:
         raise Exception("Missing OpenAI API Key!")
 
     res, answer = [], []

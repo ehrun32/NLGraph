@@ -2,6 +2,7 @@
 
 import os
 import openai
+import anthropic
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,15 +28,22 @@ def call_openai_chat(model, prompt, temperature=0, max_tokens=400):
     return response.choices[0].message.content.strip()
 
 
-def call_anthropic_claude(model, prompt, temperature=0.7, max_tokens=400):
+def call_anthropic_claude(model_name, prompt, temperature=0.7, max_tokens=400):
     """
-    Stub for Claude 3 models via Anthropic API.
+    Uses Anthropic Claude 3 (e.g., claude-3-opus-20240229) to generate a response.
     """
-    # import anthropic
-    # client = anthropic.Client(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    # response = client.messages.create(...)
-    # return response.content[0].text
-    raise NotImplementedError("Claude API wrapper not yet implemented.")
+    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+    response = client.messages.create(
+        model=model_name,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return response.content[0].text.strip()
 
 
 def call_gemini(model, prompt, temperature=0.7, max_tokens=400):
