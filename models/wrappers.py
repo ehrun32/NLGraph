@@ -7,26 +7,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def call_openai_chat(model, prompt, temperature=0, max_tokens=400):
-    """
-    Calls OpenAI's ChatCompletion endpoint.
-    """
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    if "gpt" not in model:
-        raise ValueError("Use 'gpt-3.5-turbo', 'gpt-4', or 'gpt-4o' with this wrapper.")
-
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt},
-    ]
+def call_openai_chat(model, prompt, temperature=0, max_tokens=400, return_usage=False):
     response = openai.ChatCompletion.create(
         model=model,
-        messages=messages,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt},
+        ],
         temperature=temperature,
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
     )
-    return response.choices[0].message.content.strip()
 
+    content = response["choices"][0]["message"]["content"]
+    
+    if return_usage:
+        usage = response.get("usage", {})
+        return content, usage
+    return content
 
 def call_anthropic_claude(model_name, prompt, temperature=0.7, max_tokens=400):
     """

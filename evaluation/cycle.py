@@ -33,6 +33,10 @@ assert args.prompt in [
     "Algorithm", "Recitation", "hard-CoT", "medium-CoT"
 ]
 
+# Keep track of token usage
+total_input_tokens = 0
+total_output_tokens = 0
+
 def translate(edge, n, args):
     Q = ''
     if args.prompt in ["CoT", "k-shot", "Instruct", "Algorithm", "Recitation", "hard-CoT", "medium-CoT"]:
@@ -72,6 +76,7 @@ def translate(edge, n, args):
 
 @retry(wait=wait_random_exponential(min=1, max=30), stop=stop_after_attempt(3))
 def predict(Q_list, args):
+    global total_input_tokens, total_output_tokens
     temperature = 0.7 if args.SC else 0
     answer_list = []
 
@@ -83,7 +88,9 @@ def predict(Q_list, args):
 
     for prompt in Q_list:
         if args.provider == "openai":
-            response = call_openai_chat(args.model, prompt, temperature, args.token)
+            response, usage = call_openai_chat(args.model, prompt, temperature, args.token, return_usage=True)
+            total_input_tokens += usage.get("prompt_tokens", 0)
+            total_output_tokens += usage.get("completion_tokens", 0)
         elif args.provider == "anthropic":
             response = call_anthropic_claude(args.model, prompt, temperature, args.token)
         elif args.provider == "gemini":
@@ -92,6 +99,7 @@ def predict(Q_list, args):
             raise ValueError(f"Unsupported provider: {args.provider}")
         answer_list.append(response)
     return answer_list
+
 
 def log(Q_list, res, answer, args):
     utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
@@ -118,11 +126,12 @@ def main():
 
     match args.mode:
         case "easy":
-            g_num = 3
+            g_num = 10
         case "medium":
-            g_num = 1
+            g_num = 600
         case "hard":
-            g_num = 1
+            g_num = 400
+
 
     batch_num = 20
     for i in tqdm(range((g_num + batch_num - 1) // batch_num)):
@@ -165,6 +174,11 @@ def main():
     answer = np.array(answer)
     log(Q_list, res, answer, args)
     print("Final Accuracy:", res.sum(), "/", len(res))
+    print("\n=== Token Usage Summary ===")
+    print(f"Total Input Tokens:  {total_input_tokens}")
+    print(f"Total Output Tokens: {total_output_tokens}")
+    total_cost = (total_input_tokens / 1000) * 0.005 + (total_output_tokens / 1000) * 0.015
+    print(f"Estimated Cost (GPT-4o): ${total_cost:.4f}")
 
 if __name__ == "__main__":
     main()
